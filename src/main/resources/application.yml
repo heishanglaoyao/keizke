@@ -3,7 +3,7 @@ server:
 
 spring:
   profiles:
-    active: dev
+    active: ${PROFILES_ACTIVE:dev}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
