@@ -22,7 +22,13 @@ public class GoodCategoryContoller {
 
     @PostMapping("/update")
     public ApiResponse<Boolean> update(@RequestBody GoodCategoryDto categoryDto) {
-        return ApiResponse.ok(goodCategoryService.updateById(categoryDto));
+        return ApiResponse.ok(goodCategoryService.updateById(
+                GoodCategoryDto.builder()
+                        .id(categoryDto.getId())
+                        .name(categoryDto.getName())
+                        .shopId(categoryDto.getShopId())
+                        .build()
+        ));
     }
 
     @DeleteMapping("/delete/{id}")

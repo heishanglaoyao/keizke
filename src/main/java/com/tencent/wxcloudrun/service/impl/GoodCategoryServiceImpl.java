@@ -18,4 +18,12 @@ public class GoodCategoryServiceImpl extends ServiceImpl<GoodCategoryMapper, Goo
         queryWrapper.lambda().eq(GoodCategoryDto::getName, name);
         return this.list(queryWrapper);
     }
+
+    @Override
+    public List<GoodCategoryDto> list(){
+       return list(new QueryWrapper<GoodCategoryDto>()
+                .orderByDesc("order_id")
+                .orderByAsc("id"));
+    }
+
 }

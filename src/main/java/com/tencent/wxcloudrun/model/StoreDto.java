@@ -1,13 +1,15 @@
 package com.tencent.wxcloudrun.model;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * 仓库
+ */
+@Data
 @SuperBuilder
-@TableName("t_user") // 对应数据库表名
-public class UserDto extends BaseDto{
-
-    private Integer age;
-    private String email;
+@TableName("t_store")
+public class StoreDto extends BaseDto{
 
 }

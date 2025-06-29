@@ -1,4 +1,9 @@
 package com.tencent.wxcloudrun.model.qo;
 
-public class GoodQo {
+import lombok.Data;
+
+@Data
+public class GoodQo extends BaseQo{
+
+
 }
