@@ -22,10 +22,10 @@ public final class ApiResponse<T> {
   }
 
   public static ApiResponse ok(Object data) {
-    return new ApiResponse(200, "", data);
+    return new ApiResponse(0, "", data);
   }
 
   public static ApiResponse error(String errorMsg) {
-    return new ApiResponse(0, errorMsg, new HashMap<>());
+    return new ApiResponse(1, errorMsg, new HashMap<>());
   }
 }
