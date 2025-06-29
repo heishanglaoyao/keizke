@@ -22,7 +22,7 @@ public class GoodCategoryServiceImpl extends ServiceImpl<GoodCategoryMapper, Goo
     @Override
     public List<GoodCategoryDto> list(){
        return list(new QueryWrapper<GoodCategoryDto>()
-                .orderByDesc("order_id")
+                .orderByAsc("order_id")
                 .orderByAsc("id"));
     }
 
