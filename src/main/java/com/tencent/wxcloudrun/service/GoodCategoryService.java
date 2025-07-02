@@ -8,4 +8,6 @@ import java.util.List;
 public interface GoodCategoryService extends IService<GoodCategoryDto> {
     // 自定义方法
     List<GoodCategoryDto> listAllByName(String name);
+
+    public List<GoodCategoryDto> list();
 }

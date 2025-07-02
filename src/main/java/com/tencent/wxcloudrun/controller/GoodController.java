@@ -1,12 +1,10 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.model.GoodDto;
-import com.tencent.wxcloudrun.model.UserDto;
-import com.tencent.wxcloudrun.model.qo.GoodQo;
+import com.tencent.wxcloudrun.model.bo.GoodBo;
 import com.tencent.wxcloudrun.service.GoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,15 +18,16 @@ public class GoodController {
     @Autowired
     private GoodService goodService;
 
-    @PostMapping("/add")
-    public ApiResponse<Boolean> add(@RequestBody GoodDto good) {
-        return ApiResponse.ok(goodService.save(good));
+    /**
+     * 新增或编辑
+     * @param good
+     * @return
+     */
+    @PostMapping("/edit")
+    public ApiResponse<Boolean> add(@RequestBody GoodBo good) {
+        return ApiResponse.ok(goodService.edit(good));
     }
 
-    @PostMapping("/update")
-    public ApiResponse<Boolean> update(@RequestBody GoodDto good) {
-        return ApiResponse.ok(goodService.updateById(good));
-    }
 
     @DeleteMapping("/delete/{id}")
     public ApiResponse<Boolean> delete(@PathVariable Long id) {

@@ -1,6 +1,7 @@
-package com.tencent.wxcloudrun.model;
+package com.tencent.wxcloudrun.model.bo;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tencent.wxcloudrun.model.BaseDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -11,8 +12,11 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@TableName("t_good")
-public class GoodDto extends BaseDto{
+public class GoodBo{
+
+    private Integer id;
+
+    private String name;
 
     /**
      * 图片
@@ -22,13 +26,13 @@ public class GoodDto extends BaseDto{
     /**
      * 分类
      */
-    private Long categoryId;
+    private Integer categoryId;
 
 
     /**
      * 规格 id
      */
-    private Long specsId;
+    private Integer specsId;
 
 
     /**
@@ -45,6 +49,5 @@ public class GoodDto extends BaseDto{
      * 库存预警
      */
     private int warningNum;
-
 
 }
