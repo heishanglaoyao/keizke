@@ -22,13 +22,13 @@ public class GoodDto extends BaseDto{
     /**
      * 分类
      */
-    private Long categoryId;
+    private Integer categoryId;
 
 
     /**
      * 规格 id
      */
-    private Long specsId;
+    private Integer specsId;
 
 
     /**
