@@ -18,6 +18,11 @@ public class GoodController {
     @Autowired
     private GoodService goodService;
 
+    @GetMapping("/detail")
+    public ApiResponse<GoodDto> detail(@RequestParam Integer id) {
+        return ApiResponse.ok(goodService.getById(id));
+    }
+
     /**
      * 新增或编辑
      * @param good
