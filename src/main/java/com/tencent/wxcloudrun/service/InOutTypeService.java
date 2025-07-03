@@ -11,4 +11,8 @@ public interface InOutTypeService extends IService<InOutTypeDto> {
     // 自定义方法
     List<InOutTypeDto> listAllByName(String name);
 
+
+    List<InOutTypeDto> listByType(Integer type);
+
+
 }

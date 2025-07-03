@@ -46,5 +46,9 @@ public class GoodDto extends BaseDto{
      */
     private int warningNum;
 
+    /**
+     * 库存数量
+     */
+    private int nums;
 
 }

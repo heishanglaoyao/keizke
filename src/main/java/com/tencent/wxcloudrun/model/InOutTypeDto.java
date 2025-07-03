@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.model;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -9,7 +10,8 @@ import lombok.experimental.SuperBuilder;
  */
 @Data
 @SuperBuilder
-@TableName("t_inout_type")
+@NoArgsConstructor
+@TableName("t_in_out_type")
 public class InOutTypeDto extends BaseDto{
 
 

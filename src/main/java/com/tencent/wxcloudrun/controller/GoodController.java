@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.model.GoodDto;
 import com.tencent.wxcloudrun.model.bo.GoodBo;
+import com.tencent.wxcloudrun.model.qo.GoodQo;
+import com.tencent.wxcloudrun.model.vo.GoodVo;
 import com.tencent.wxcloudrun.service.GoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -42,16 +44,12 @@ public class GoodController {
 
     // 条件查询
     @GetMapping("/list")
-    public ApiResponse<List<GoodDto>> list(@RequestParam(required = false) Integer categoryId,
-                                           @RequestParam(required = false) String name) {
-        LambdaQueryWrapper<GoodDto> queryWrapper = new LambdaQueryWrapper<>();
-        if (categoryId != null) {
-            queryWrapper.eq(GoodDto::getCategoryId, categoryId);
-        }
-        if(StringUtils.isNotBlank(name)){
-            queryWrapper.eq(GoodDto::getName, name);
-        }
-        return ApiResponse.ok(goodService.list(queryWrapper));
+    public ApiResponse<List<GoodVo>> list(@RequestParam(required = false) String name,
+                                          @RequestParam(required = false) Integer categoryId) {
+        GoodQo qo =new GoodQo();
+        qo.setName(name);
+        qo.setCategoryId(categoryId);
+        return ApiResponse.ok(goodService.list(qo));
     }
 
 }

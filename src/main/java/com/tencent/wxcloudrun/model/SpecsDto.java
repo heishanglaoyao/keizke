@@ -21,7 +21,7 @@ public class SpecsDto extends BaseDto{
     @TableField("unit_val_0")
     private int unitVal0;
     @TableField("unit_name_0")
-    private String unitNme0;
+    private String unitName0;
     @TableField("unit_val_1")
     private int unitVal1;
     @TableField("unit_name_1")
@@ -30,5 +30,6 @@ public class SpecsDto extends BaseDto{
     private int unitVal2;
     @TableField("unit_name_2")
     private String unitName2;
+
 
 }

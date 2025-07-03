@@ -1,18 +1,31 @@
 package com.tencent.wxcloudrun.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tencent.wxcloudrun.dao.GoodMapper;
 import com.tencent.wxcloudrun.model.GoodDto;
+import com.tencent.wxcloudrun.model.SpecsDto;
 import com.tencent.wxcloudrun.model.bo.GoodBo;
+import com.tencent.wxcloudrun.model.qo.GoodQo;
+import com.tencent.wxcloudrun.model.vo.GoodVo;
 import com.tencent.wxcloudrun.service.GoodService;
+import com.tencent.wxcloudrun.service.SpecsService;
 import com.tencent.wxcloudrun.utils.ConvertUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements GoodService {
+
+    @Autowired
+    SpecsService specsService;
 
     @Override
     public List<GoodDto> listAllByName(String name) {
@@ -24,5 +37,35 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
     public boolean edit(GoodBo goodBo){
         GoodDto goodDto = ConvertUtils.copyProperties(GoodDto.class,goodBo);
         return this.saveOrUpdate(goodDto);
+    }
+
+    public List<GoodVo> list(GoodQo qo){
+        List<GoodVo> goodVos = new ArrayList<>();
+        LambdaQueryWrapper<GoodDto> queryWrapper = new LambdaQueryWrapper<>();
+        if (qo.getCategoryId() != null) {
+            queryWrapper.eq(GoodDto::getCategoryId, qo.getCategoryId());
+        }
+        if (qo.getName() != null) {
+            queryWrapper.eq(GoodDto::getName, qo.getName());
+        }
+        if (qo.getId() != null) {
+            queryWrapper.eq(GoodDto::getId, qo.getId());
+        }
+        List<GoodDto> dtos = this.list(queryWrapper);
+        if(CollectionUtils.isEmpty(dtos)){
+            return goodVos;
+        }
+        List<SpecsDto> specsDtos = specsService.getBaseMapper().selectBatchIds(
+                dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
+        );
+        goodVos = dtos.parallelStream()
+                .map(dto -> {
+                    GoodVo vo = GoodVo.trasform(dto,
+                            specsDtos.stream().filter(specsDto -> specsDto.getId().equals(dto.getSpecsId())).findFirst().orElse(null));
+                    // 其他属性赋值...
+                    return vo;
+                })
+                .collect(Collectors.toList());
+        return goodVos;
     }
 }
