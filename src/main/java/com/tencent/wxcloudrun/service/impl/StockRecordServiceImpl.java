@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
     GoodStoreService goodStoreService;
 
 
+    @Transactional(rollbackFor = Exception.class)
     public String save(StockRecordBo stockGoodBo){
         String errMsg = null;
         try {
@@ -67,38 +69,16 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
             for(StockRecordBo.Goods g: stockGoodBo.getSelectedGoods()){
                 GoodDto dbGood_ = dbGoods.stream().filter(dbGood -> dbGood.getId().equals(g.getId())).findFirst().get();
                 SpecsDto dbSpecs_ = dbSpecsList.stream().filter(dbSpecs -> dbSpecs.getId().equals(dbGood_.getSpecsId())).findFirst().get();
-
-                GoodStoreDto eidtGoodStoreDto = goodStoreList.stream().filter(
-                gs -> gs.getGoodId().equals(dbGood_.getId())
-                        && gs.getStoreId().equals(stockGoodBo.getStoreId())
-                ).findFirst().orElse(null);
                 tansUpdatateGoods(
                         g,
                         dbGood_,
                         StockTypeEnum.getStockTypeEnumByCode(stockGoodBo.getStockType()),
                         dbSpecs_,
-                        eidtGoodStoreDto,
+                        goodStoreList,
                         stockGoodBo,
                         addGoodStores,
                         updateGoodStores
                 );
-                if(StockTypeEnum.SWITCH.getCode() == stockGoodBo.getStockType()){
-                    GoodStoreDto eidtGoodStoreDto_ = goodStoreList.stream().filter(
-                            gs -> gs.getGoodId().equals(dbGood_.getId())
-                                    && gs.getStoreId().equals(stockGoodBo.getToStoreId())
-                    ).findFirst().orElse(null);
-                    tansUpdatateGoods(
-                            g,
-                            dbGood_,
-                            StockTypeEnum.IN,
-                            dbSpecs_,
-                            eidtGoodStoreDto_,
-                            stockGoodBo,
-                            addGoodStores,
-                            updateGoodStores
-                    );
-                }
-
             }
             //更新商品数量信息
             if(CollectionUtils.isNotEmpty(updateGoodStores)){
@@ -110,6 +90,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
         }catch (Exception e){
             errMsg = e.getMessage();
             log.error("save error", e);
+            throw new RuntimeException(errMsg);
         }
         return errMsg;
     }
@@ -128,22 +109,18 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                                             GoodDto dbGood,
                                             StockTypeEnum stockTypeEnum,
                                                  SpecsDto specsDto,
-                                                 GoodStoreDto eidtGoodStoreDto,
+                                                List<GoodStoreDto> goodStoreList,
                                                  StockRecordBo stockGoodBo,
                                                  List<GoodStoreDto> addGoodStores,
                                                  List<GoodStoreDto> updateGoodStores){
+        GoodStoreDto eidtGoodStoreDto = goodStoreList.stream().filter(
+                gs -> gs.getGoodId().equals(dbGood.getId())
+                        && gs.getStoreId().equals(stockGoodBo.getStoreId())
+        ).findFirst().orElse(null);
         //通过规格信息获取商品数量
         int goodCount = calGoodNums(good,specsDto);
-        if(eidtGoodStoreDto == null){
-            eidtGoodStoreDto = new GoodStoreDto();
-            eidtGoodStoreDto.setStoreId(stockGoodBo.getStoreId());
-            eidtGoodStoreDto.setGoodId(dbGood.getId());
-            eidtGoodStoreDto.setNums(0);
-            eidtGoodStoreDto.setPriceInCent(0l);
-            addGoodStores.add(eidtGoodStoreDto);
-        }else{
-            updateGoodStores.add(eidtGoodStoreDto);
-        }
+        eidtGoodStoreDto = setAddGoodStores(eidtGoodStoreDto,stockGoodBo.getStoreId(),dbGood.getId(),
+                addGoodStores,updateGoodStores );
         switch (stockTypeEnum){
             case IN:
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() + goodCount);
@@ -152,13 +129,35 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() - goodCount);
                 break;
             case SWITCH:
-                //先转出，调用处再“入库”
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() - goodCount);
+                GoodStoreDto eidtGoodStoreDto2 = goodStoreList.stream().filter(
+                        gs -> gs.getGoodId().equals(dbGood.getId())
+                                && gs.getStoreId().equals(stockGoodBo.getToStoreId())
+                ).findFirst().orElse(null);
+                eidtGoodStoreDto2 = setAddGoodStores(eidtGoodStoreDto2,stockGoodBo.getToStoreId(),dbGood.getId(),
+                        addGoodStores,updateGoodStores );
+                eidtGoodStoreDto2.setNums(eidtGoodStoreDto2.getNums() + goodCount);
                 break;
             case CHECK:
                 eidtGoodStoreDto.setNums(goodCount);
                 break;
         }
+    }
+
+    private GoodStoreDto setAddGoodStores(GoodStoreDto eidtGoodStoreDto,Integer storeId,Integer goodId,
+                    List<GoodStoreDto> addGoodStores,
+                    List<GoodStoreDto> updateGoodStores){
+        if(eidtGoodStoreDto == null){
+            eidtGoodStoreDto = new GoodStoreDto();
+            eidtGoodStoreDto.setStoreId(storeId);
+            eidtGoodStoreDto.setGoodId(goodId);
+            eidtGoodStoreDto.setNums(0);
+            eidtGoodStoreDto.setPriceInCent(0l);
+            addGoodStores.add(eidtGoodStoreDto);
+        }else{
+            updateGoodStores.add(eidtGoodStoreDto);
+        }
+        return eidtGoodStoreDto;
     }
 
     private int calGoodNums(StockRecordBo.Goods good,SpecsDto specsDto){
