@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.config;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 
@@ -27,5 +28,12 @@ public final class ApiResponse<T> {
 
   public static ApiResponse error(String errorMsg) {
     return new ApiResponse(1, errorMsg, new HashMap<>());
+  }
+
+  public static ApiResponse ok4ErrMsg(String errorMsg) {
+    if(StringUtils.isEmpty(errorMsg)){
+      return ok();
+    }
+    return error(errorMsg);
   }
 }

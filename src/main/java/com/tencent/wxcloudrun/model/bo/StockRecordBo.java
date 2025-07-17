@@ -8,20 +8,27 @@ import java.util.List;
  * 出入库记录对象
  */
 @Data
-public class StockGoodBo {
+public class StockRecordBo {
 
     /**
      * 出入库日期
      */
-    private String date;
+    private String dateStr;
     /**
      * 仓库id
      */
-    private Integer warehouseId;
+    private Integer storeId;
+
+    /**
+     * 转仓时，转入的仓库id
+     */
+    private Integer toStoreId;
 
     /**
      * 0-出库
      * 1-入库
+     * 2-转库
+     * 3-盘点
      */
     private int stockType;
 
@@ -29,6 +36,12 @@ public class StockGoodBo {
      * 采购类型id
      */
     private Integer typeId;
+
+    /**
+     * 备注
+     */
+    private String notes;
+
     /**
      * 选择商品
      */

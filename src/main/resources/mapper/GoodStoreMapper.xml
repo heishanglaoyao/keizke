@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.GoodStoreMapper">
+    <update id="updateBatchSelective">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            UPDATE t_good_store
+            <set>
+                <if test="item.storeId != null">store_id = #{item.storeId},</if>
+                <if test="item.goodId != null">good_id = #{item.goodId},</if>
+                <if test="item.nums != null">nums = #{item.nums},</if>
+                <if test="item.priceInCent != null">price_in_cent = #{item.priceInCent},</if>
+                <!-- 其他需要更新的字段 -->
+                update_time = NOW()
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
+</mapper>
