@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tencent.wxcloudrun.dao.GoodStoreMapper">
+<mapper namespace="com.tencent.wxcloudrun.dao.StoreGoodMapper">
     <update id="updateBatchSelective">
-        UPDATE t_good_store
+        UPDATE t_store_good
         <set>
             <if test="list[0].storeId != null">
                 store_id = CASE id
@@ -29,6 +29,20 @@
                 price_in_cent = CASE id
                 <foreach collection="list" item="item">
                     WHEN #{item.id} THEN #{item.priceInCent}
+                </foreach>
+                END,
+            </if>
+            <if test="list[0].name != null">
+                name = CASE id
+                <foreach collection="list" item="item">
+                    WHEN #{item.id} THEN #{item.name}
+                </foreach>
+                END,
+            </if>
+            <if test="list[0].extInfo != null">
+                ext_info = CASE id
+                <foreach collection="list" item="item">
+                    WHEN #{item.id} THEN #{item.extInfo}
                 </foreach>
                 END,
             </if>

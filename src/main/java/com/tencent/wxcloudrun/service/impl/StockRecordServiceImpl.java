@@ -6,15 +6,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tencent.wxcloudrun.constant.StockTypeEnum;
 import com.tencent.wxcloudrun.dao.StockRecordMapper;
 import com.tencent.wxcloudrun.model.GoodDto;
-import com.tencent.wxcloudrun.model.GoodStoreDto;
 import com.tencent.wxcloudrun.model.SpecsDto;
 import com.tencent.wxcloudrun.model.StockRecordDto;
+import com.tencent.wxcloudrun.model.StoreGoodDto;
 import com.tencent.wxcloudrun.model.bo.StockRecordBo;
 import com.tencent.wxcloudrun.service.GoodService;
-import com.tencent.wxcloudrun.service.GoodStoreService;
 import com.tencent.wxcloudrun.service.SpecsService;
 import com.tencent.wxcloudrun.service.StockRecordService;
+import com.tencent.wxcloudrun.service.StoreGoodService;
 import com.tencent.wxcloudrun.utils.ConvertUtils;
+import com.tencent.wxcloudrun.utils.GoodUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
     SpecsService specsService;
 
     @Autowired
-    GoodStoreService goodStoreService;
+    StoreGoodService storeGoodService;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -55,17 +56,17 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
             List<GoodDto> dbGoods = goodService.getBaseMapper().selectBatchIds(goodIdList);
 
             //查询仓库商品信息
-            List<GoodStoreDto> goodStoreList = goodStoreService.getBaseMapper().selectList(
-                    Wrappers.<GoodStoreDto>lambdaQuery()
-                            .in(GoodStoreDto::getGoodId, goodIdList)
-                            .select(GoodStoreDto::getId, GoodStoreDto::getGoodId,GoodStoreDto::getNums,
-                                    GoodStoreDto::getStoreId, GoodStoreDto::getPriceInCent
+            List<StoreGoodDto> goodStoreList = storeGoodService.getBaseMapper().selectList(
+                    Wrappers.<StoreGoodDto>lambdaQuery()
+                            .in(StoreGoodDto::getGoodId, goodIdList)
+                            .select(StoreGoodDto::getId, StoreGoodDto::getGoodId,StoreGoodDto::getNums,
+                                    StoreGoodDto::getStoreId, StoreGoodDto::getPriceInCent
                             )
             );
             List<SpecsDto> dbSpecsList = specsService.getBaseMapper().selectList(null);
 
-            List<GoodStoreDto> updateGoodStores = new ArrayList<>();
-            List<GoodStoreDto> addGoodStores = new ArrayList<>();
+            List<StoreGoodDto> updateStoreGoods = new ArrayList<>();
+            List<StoreGoodDto> addStoreGoods = new ArrayList<>();
             for(StockRecordBo.Goods g: stockGoodBo.getSelectedGoods()){
                 GoodDto dbGood_ = dbGoods.stream().filter(dbGood -> dbGood.getId().equals(g.getId())).findFirst().get();
                 SpecsDto dbSpecs_ = dbSpecsList.stream().filter(dbSpecs -> dbSpecs.getId().equals(dbGood_.getSpecsId())).findFirst().get();
@@ -76,16 +77,16 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                         dbSpecs_,
                         goodStoreList,
                         stockGoodBo,
-                        addGoodStores,
-                        updateGoodStores
+                        addStoreGoods,
+                        updateStoreGoods
                 );
             }
             //更新商品数量信息
-            if(CollectionUtils.isNotEmpty(updateGoodStores)){
-                goodStoreService.updateBatchSelective(updateGoodStores);
+            if(CollectionUtils.isNotEmpty(updateStoreGoods)){
+                storeGoodService.updateBatchSelective(updateStoreGoods);
             }
-            if(CollectionUtils.isNotEmpty(addGoodStores)){
-                goodStoreService.saveOrUpdateBatch(addGoodStores);
+            if(CollectionUtils.isNotEmpty(addStoreGoods)){
+                storeGoodService.saveOrUpdateBatch(addStoreGoods);
             }
         }catch (Exception e){
             errMsg = e.getMessage();
@@ -109,18 +110,18 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                                             GoodDto dbGood,
                                             StockTypeEnum stockTypeEnum,
                                                  SpecsDto specsDto,
-                                                List<GoodStoreDto> goodStoreList,
+                                                List<StoreGoodDto> goodStoreList,
                                                  StockRecordBo stockGoodBo,
-                                                 List<GoodStoreDto> addGoodStores,
-                                                 List<GoodStoreDto> updateGoodStores){
-        GoodStoreDto eidtGoodStoreDto = goodStoreList.stream().filter(
+                                                 List<StoreGoodDto> addGoodStores,
+                                                 List<StoreGoodDto> updateGoodStores){
+        StoreGoodDto eidtGoodStoreDto = goodStoreList.stream().filter(
                 gs -> gs.getGoodId().equals(dbGood.getId())
                         && gs.getStoreId().equals(stockGoodBo.getStoreId())
         ).findFirst().orElse(null);
         //通过规格信息获取商品数量
-        int goodCount = calGoodNums(good,specsDto);
-        eidtGoodStoreDto = setAddGoodStores(eidtGoodStoreDto,stockGoodBo.getStoreId(),dbGood.getId(),
-                addGoodStores,updateGoodStores );
+        int goodCount = GoodUtils.calGoodNums(specsDto,good.getUnitQuantitiesList());
+        eidtGoodStoreDto = setAddGoodStores(eidtGoodStoreDto,stockGoodBo.getStoreId(),dbGood,
+                specsDto, addGoodStores,updateGoodStores );
         switch (stockTypeEnum){
             case IN:
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() + goodCount);
@@ -130,12 +131,12 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                 break;
             case SWITCH:
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() - goodCount);
-                GoodStoreDto eidtGoodStoreDto2 = goodStoreList.stream().filter(
+                StoreGoodDto eidtGoodStoreDto2 = goodStoreList.stream().filter(
                         gs -> gs.getGoodId().equals(dbGood.getId())
                                 && gs.getStoreId().equals(stockGoodBo.getToStoreId())
                 ).findFirst().orElse(null);
-                eidtGoodStoreDto2 = setAddGoodStores(eidtGoodStoreDto2,stockGoodBo.getToStoreId(),dbGood.getId(),
-                        addGoodStores,updateGoodStores );
+                eidtGoodStoreDto2 = setAddGoodStores(eidtGoodStoreDto2,stockGoodBo.getToStoreId(),dbGood,
+                        specsDto,addGoodStores,updateGoodStores );
                 eidtGoodStoreDto2.setNums(eidtGoodStoreDto2.getNums() + goodCount);
                 break;
             case CHECK:
@@ -144,37 +145,27 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
         }
     }
 
-    private GoodStoreDto setAddGoodStores(GoodStoreDto eidtGoodStoreDto,Integer storeId,Integer goodId,
-                    List<GoodStoreDto> addGoodStores,
-                    List<GoodStoreDto> updateGoodStores){
+    private StoreGoodDto setAddGoodStores(StoreGoodDto eidtGoodStoreDto,Integer storeId,
+                                          GoodDto dbGood,
+                                          SpecsDto specsDto,
+                                          List<StoreGoodDto> addGoodStores,
+                                          List<StoreGoodDto> updateGoodStores){
         if(eidtGoodStoreDto == null){
-            eidtGoodStoreDto = new GoodStoreDto();
+            eidtGoodStoreDto = new StoreGoodDto();
             eidtGoodStoreDto.setStoreId(storeId);
-            eidtGoodStoreDto.setGoodId(goodId);
+            eidtGoodStoreDto.setGoodId(dbGood.getId());
             eidtGoodStoreDto.setNums(0);
             eidtGoodStoreDto.setPriceInCent(0l);
             addGoodStores.add(eidtGoodStoreDto);
         }else{
             updateGoodStores.add(eidtGoodStoreDto);
         }
+        eidtGoodStoreDto.setName(dbGood.getName());
+        eidtGoodStoreDto.setExtInfo(JSONObject.toJSONString(specsDto));
         return eidtGoodStoreDto;
     }
 
-    private int calGoodNums(StockRecordBo.Goods good,SpecsDto specsDto){
-        int res = 0;
-        if(specsDto.getLevel() >= 1){
-            res = good.getUnitQuantitiesList().get(0).getValue();
-        }
-        if(specsDto.getLevel() >= 2){
-            //1 包 10个
-            res += good.getUnitQuantitiesList().get(1).getValue() * specsDto.getUnitVal0();
-        }
-        if(specsDto.getLevel() >= 3){
-            //1 包 10个
-            res += good.getUnitQuantitiesList().get(2).getValue() * specsDto.getUnitVal0() * specsDto.getUnitVal1();
-        }
-        return res;
-    }
+
 
 
 

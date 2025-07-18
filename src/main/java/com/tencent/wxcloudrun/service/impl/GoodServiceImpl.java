@@ -6,16 +6,18 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tencent.wxcloudrun.dao.GoodMapper;
 import com.tencent.wxcloudrun.model.GoodDto;
 import com.tencent.wxcloudrun.model.SpecsDto;
+import com.tencent.wxcloudrun.model.StoreGoodDto;
 import com.tencent.wxcloudrun.model.bo.GoodBo;
 import com.tencent.wxcloudrun.model.qo.GoodQo;
 import com.tencent.wxcloudrun.model.vo.GoodVo;
 import com.tencent.wxcloudrun.service.GoodService;
 import com.tencent.wxcloudrun.service.SpecsService;
+import com.tencent.wxcloudrun.service.StoreGoodService;
 import com.tencent.wxcloudrun.utils.ConvertUtils;
+import com.tencent.wxcloudrun.utils.GoodUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,9 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
 
     @Autowired
     SpecsService specsService;
+
+    @Autowired
+    StoreGoodService storeGoodService;
 
     @Override
     public List<GoodDto> listAllByName(String name) {
@@ -58,14 +63,21 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         List<SpecsDto> specsDtos = specsService.getBaseMapper().selectBatchIds(
                 dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
         );
+        List<StoreGoodDto> storeGoodDtos = storeGoodService.list(null);
         goodVos = dtos.parallelStream()
                 .map(dto -> {
-                    GoodVo vo = GoodVo.trasform(dto,
-                            specsDtos.stream().filter(specsDto -> specsDto.getId().equals(dto.getSpecsId())).findFirst().orElse(null));
+                    SpecsDto specsDto = specsDtos.stream().filter(x->x.getId().equals(dto.getSpecsId())).findFirst().orElse(null);
+                    GoodVo vo = GoodVo.trasform(dto,specsDto);
+                    List<StoreGoodDto> storeDtos_ = storeGoodDtos.stream().filter(x->x.getGoodId().equals(dto.getId())).collect(Collectors.toList());
+                    storeDtos_.parallelStream().forEach(storeDto -> {
+                        storeDto.setShowNums(GoodUtils.transUnitStr(storeDto.getNums(),specsDto));
+                    });
+                    vo.setStoreGoods(storeDtos_);
                     // 其他属性赋值...
                     return vo;
                 })
                 .collect(Collectors.toList());
         return goodVos;
     }
+
 }

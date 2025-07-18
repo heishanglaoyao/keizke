@@ -2,7 +2,9 @@ package com.tencent.wxcloudrun.model.vo;
 
 import com.tencent.wxcloudrun.model.GoodDto;
 import com.tencent.wxcloudrun.model.SpecsDto;
+import com.tencent.wxcloudrun.model.StoreGoodDto;
 import com.tencent.wxcloudrun.utils.ConvertUtils;
+import com.tencent.wxcloudrun.utils.GoodUtils;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,18 @@ public class GoodVo {
      */
     private List<String> specsUnits;
 
+    private List<StoreGoodDto> storeGoods;
+
+    /**
+     * 规格名称 1箱*12包*10个
+     */
+    private String specsStr;
+
+//    /**
+//     * 格式化库存：2箱_12包_1个
+//     */
+//    private String numStr;
+
 
     public static GoodVo trasform(GoodDto dto, SpecsDto specsDto){
         GoodVo vo = ConvertUtils.copyProperties(GoodVo.class,dto);
@@ -72,6 +86,8 @@ public class GoodVo {
             if(!StringUtils.isEmpty(specsDto.getUnitName2())) {
                 vo.getSpecsUnits().add(specsDto.getUnitName2());
             }
+            vo.setSpecsStr(specsDto.getName());
+//            vo.setNumStr(GoodUtils.transUnitStr(dto.getNums(),specsDto));
         }
         return vo;
     }

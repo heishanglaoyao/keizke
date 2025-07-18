@@ -1,12 +1,12 @@
 package com.tencent.wxcloudrun.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tencent.wxcloudrun.model.GoodStoreDto;
+import com.tencent.wxcloudrun.model.StoreGoodDto;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface GoodStoreMapper extends BaseMapper<GoodStoreDto> {
+public interface StoreGoodMapper extends BaseMapper<StoreGoodDto> {
 
 
     /**
@@ -14,6 +14,6 @@ public interface GoodStoreMapper extends BaseMapper<GoodStoreDto> {
      * @param list 更新列表
      * @return 影响行数
      */
-    int updateBatchSelective(@Param("list") List<GoodStoreDto> list);
+    int updateBatchSelective(@Param("list") List<StoreGoodDto> list);
 
 }
