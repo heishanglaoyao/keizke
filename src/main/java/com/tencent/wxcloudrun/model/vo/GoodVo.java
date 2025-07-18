@@ -77,6 +77,8 @@ public class GoodVo {
      */
     private int num;
     private String numStr;
+    private String storeName;
+
 
 
 
