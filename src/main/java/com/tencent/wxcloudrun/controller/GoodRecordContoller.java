@@ -4,17 +4,16 @@ import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.model.GoodCategoryDto;
 import com.tencent.wxcloudrun.model.GoodDto;
 import com.tencent.wxcloudrun.model.bo.GoodBo;
+import com.tencent.wxcloudrun.model.qo.GoodQo;
 import com.tencent.wxcloudrun.model.vo.GoodRecordVo;
+import com.tencent.wxcloudrun.model.vo.GoodVo;
 import com.tencent.wxcloudrun.model.vo.OptionVo;
 import com.tencent.wxcloudrun.service.GoodCategoryService;
 import com.tencent.wxcloudrun.service.GoodRecordService;
 import com.tencent.wxcloudrun.service.GoodService;
 import com.tencent.wxcloudrun.service.SpecsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,5 +69,17 @@ public class GoodRecordContoller {
         }
         return options;
     }
+
+    @GetMapping("/list")
+    public ApiResponse<List<GoodVo>> list(@RequestParam(required = false) String name,
+                                          @RequestParam(required = false) Integer categoryId,
+                                          @RequestParam(required = false) Integer queryType) {
+        GoodQo qo =new GoodQo();
+        qo.setName(name);
+        qo.setCategoryId(categoryId);
+        qo.setQueryType(queryType);
+        return ApiResponse.ok(goodService.recordlist(qo));
+    }
+
 
 }

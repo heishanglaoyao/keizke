@@ -67,10 +67,17 @@ public class GoodVo {
      */
     private String specsStr;
 
-//    /**
-//     * 格式化库存：2箱_12包_1个
-//     */
-//    private String numStr;
+    /**
+     * 仓库id
+     */
+    private Integer storeId;
+
+    /**
+     * 库存数
+     */
+    private int num;
+    private String numStr;
+
 
 
     public static GoodVo trasform(GoodDto dto, SpecsDto specsDto){
@@ -87,7 +94,6 @@ public class GoodVo {
                 vo.getSpecsUnits().add(specsDto.getUnitName2());
             }
             vo.setSpecsStr(specsDto.getName());
-//            vo.setNumStr(GoodUtils.transUnitStr(dto.getNums(),specsDto));
         }
         return vo;
     }

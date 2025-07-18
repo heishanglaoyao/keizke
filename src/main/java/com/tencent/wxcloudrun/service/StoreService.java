@@ -8,5 +8,5 @@ import java.util.List;
 public interface StoreService extends IService<StoreDto> {
 
     // 自定义方法
-    List<StoreDto> listAllByName(String name);
+    List<StoreDto> listAll(String name);
 }

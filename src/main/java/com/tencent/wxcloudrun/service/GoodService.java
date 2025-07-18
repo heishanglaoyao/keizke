@@ -16,4 +16,5 @@ public interface GoodService extends IService<GoodDto> {
 
     public List<GoodVo> list(GoodQo qo);
 
+    public List<GoodVo> recordlist(GoodQo qo);
 }
