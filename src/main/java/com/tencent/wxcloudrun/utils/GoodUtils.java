@@ -47,7 +47,7 @@ public class GoodUtils {
         if(nums == 0){
             return new int[] {0,0};
         }
-        if(nums > unit){
+        if(nums >= unit){
             return new int[] {nums % unit,nums / unit};
         }
         return new int[] {nums,0};
