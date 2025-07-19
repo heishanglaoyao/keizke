@@ -2,8 +2,11 @@ package com.tencent.wxcloudrun.utils;
 
 import com.tencent.wxcloudrun.model.SpecsDto;
 import com.tencent.wxcloudrun.model.bo.StockRecordBo;
+import com.tencent.wxcloudrun.model.vo.SpecsVo;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GoodUtils {
 
@@ -16,23 +19,26 @@ public class GoodUtils {
      * @param specsDto
      * @return
      */
-    public static String transUnitStr(int nums,SpecsDto specsDto){
+    public static String transUnitStr(int nums, SpecsVo specs){
         // 1箱 24包 10 个
         int[] unit =  new int[3];
-        if(specsDto.getLevel() ==1){
-            return nums + ""+specsDto.getUnitName0();
+        int level = specs.getUnitNames().size();
+        if(level ==1){
+            return nums + ""+specs.getUnitNames().get(0);
         }
-        if(specsDto.getLevel() ==2){
-            int[] unitArr = getUnitArr(nums,specsDto.getUnitVal0());
-            return unitArr[1] + ""+specsDto.getUnitName1() +SPECS_SEPARATORS+unitArr[0] + ""+specsDto.getUnitName0();
+        if(level ==2){
+            int[] unitArr = getUnitArr(nums,specs.getUnitVals().get(1));
+            return unitArr[1] + ""+specs.getUnitNames().get(0) +SPECS_SEPARATORS+
+                    unitArr[0] + ""+specs.getUnitNames().get(1);
         }
-        if(specsDto.getLevel() == 3){
-            int[] unitArr = getUnitArr(nums,specsDto.getUnitVal0() * specsDto.getUnitVal1());
+        if(level == 3){
+            int[] unitArr = getUnitArr(nums,
+                    specs.getUnitVals().get(1) * specs.getUnitVals().get(2));
             int val_2 = unitArr[1];
-            unitArr = getUnitArr(unitArr[0],specsDto.getUnitVal0());
-            return val_2 + ""+specsDto.getUnitName2() +SPECS_SEPARATORS+
-                    unitArr[1] + ""+specsDto.getUnitName1() +SPECS_SEPARATORS+
-                    unitArr[0] + ""+specsDto.getUnitName0();
+            unitArr = getUnitArr(unitArr[0],specs.getUnitVals().get(2));
+            return val_2 + ""+specs.getUnitNames().get(0)+SPECS_SEPARATORS+
+                    unitArr[1] + ""+specs.getUnitNames().get(1) +SPECS_SEPARATORS+
+                    unitArr[0] + ""+specs.getUnitNames().get(2);
         }
         return "";
     }
@@ -52,21 +58,32 @@ public class GoodUtils {
      * @param specsDto 1箱 1包 1个 1+1*10+1*24*10 = 251
      * @param unitQuantitiesList
      * @return
+     *
+     * {"id":2,"name":"1箱*6个","unitNames":["箱","个"],"unitVals":[1,6]}
      */
-    public static int calGoodNums(SpecsDto specsDto,
+    public static int calGoodNums(SpecsVo specsVo,
                                    List<StockRecordBo.UnitQuantity> unitQuantitiesList
                             ){
         int res = 0;
-        if(specsDto.getLevel() >= 1){
-            res = unitQuantitiesList.get(0).getValue();
+        int level = specsVo.getUnitNames().size();
+        Map<String, Integer> unitMap = unitQuantitiesList.stream()
+                .collect(Collectors.toMap(
+                        StockRecordBo.UnitQuantity::getName,
+                        StockRecordBo.UnitQuantity::getValue
+                ));
+        if(level == 1){
+            return unitMap.get(specsVo.getUnitNames().get(0));
         }
-        if(specsDto.getLevel() >= 2){
-            //1 包 10个
-            res += unitQuantitiesList.get(1).getValue() * specsDto.getUnitVal0();
+        if(level == 2){
+            return unitMap.get(specsVo.getUnitNames().get(0)) *
+                    specsVo.getUnitVals().get(1) +
+                    unitMap.get(specsVo.getUnitNames().get(1));
         }
-        if(specsDto.getLevel() >= 3){
-            //1 包 10个
-            res += unitQuantitiesList.get(2).getValue() * specsDto.getUnitVal0() * specsDto.getUnitVal1();
+        if(level ==3){
+            return unitMap.get(specsVo.getUnitNames().get(0)) *
+                    specsVo.getUnitVals().get(1) * specsVo.getUnitVals().get(2)+
+                    unitMap.get(specsVo.getUnitNames().get(1)) * specsVo.getUnitVals().get(2) +
+                    unitMap.get(specsVo.getUnitNames().get(2));
         }
         return res;
     }

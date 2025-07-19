@@ -11,6 +11,7 @@ import com.tencent.wxcloudrun.model.StoreGoodDto;
 import com.tencent.wxcloudrun.model.bo.GoodBo;
 import com.tencent.wxcloudrun.model.qo.GoodQo;
 import com.tencent.wxcloudrun.model.vo.GoodVo;
+import com.tencent.wxcloudrun.model.vo.SpecsVo;
 import com.tencent.wxcloudrun.service.GoodService;
 import com.tencent.wxcloudrun.service.SpecsService;
 import com.tencent.wxcloudrun.service.StoreGoodService;
@@ -66,7 +67,7 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         if(CollectionUtils.isEmpty(dtos)){
             return goodVos;
         }
-        List<SpecsDto> specsDtos = specsService.getBaseMapper().selectBatchIds(
+        List<SpecsVo> specsDtos = specsService.selectBatchIds(
                 dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
         );
         List<StoreGoodDto> storeGoodDtos = storeGoodService.list(null);
@@ -89,7 +90,7 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
                 .collect(Collectors.toList());
         List<GoodDto> dtos = this.listByIds(uniqueGoodIds);
 
-        List<SpecsDto> specsDtos = specsService.getBaseMapper().selectBatchIds(
+        List<SpecsVo> specsVos = specsService.selectBatchIds(
                 dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
         );
         Map<Integer, List<StoreGoodDto>> groupedByStoreId = storeGoodDtos.stream()
@@ -102,26 +103,26 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
             }
             List<GoodVo> goodVos_ = transGoodVos(
                     dtos.stream().filter(vo -> goodIds_.contains(vo.getId())).collect(Collectors.toList())
-                    ,specsDtos,storeGoodDtos_);
+                    ,specsVos,storeGoodDtos_);
             goodVos.addAll(goodVos_);
         }
         return goodVos;
     }
 
-    private List<GoodVo> transGoodVos(List<GoodDto> dtos,  List<SpecsDto> specsDtos, List<StoreGoodDto> storeGoodDtos){
+    private List<GoodVo> transGoodVos(List<GoodDto> dtos, List<SpecsVo> specsVos, List<StoreGoodDto> storeGoodDtos){
         if(org.apache.commons.collections4.CollectionUtils.isEmpty(dtos)){
             return new ArrayList<>();
         }
         List<GoodVo> goodVos = dtos.parallelStream()
                 .map(dto -> {
-                    SpecsDto specsDto = specsDtos.stream().filter(x->x.getId().equals(dto.getSpecsId())).findFirst().orElse(null);
-                    GoodVo vo = GoodVo.trasform(dto,specsDto);
+                    SpecsVo specsVo = specsVos.stream().filter(x->x.getId().equals(dto.getSpecsId())).findFirst().orElse(null);
+                    GoodVo vo = GoodVo.trasform(dto,specsVo);
                     StoreGoodDto storeGoodDto_ = storeGoodDtos.stream().filter(
                             x->x.getGoodId().equals(dto.getId())).findFirst().orElse(null);
                     if(storeGoodDto_ != null){
                         vo.setStoreId(storeGoodDto_.getStoreId());
                         vo.setNum(storeGoodDto_.getNums());
-                        vo.setNumStr(GoodUtils.transUnitStr(storeGoodDto_.getNums(),specsDto));
+                        vo.setNumStr(GoodUtils.transUnitStr(storeGoodDto_.getNums(),specsVo));
                         vo.setStoreName(StoreEnum.getStoreEnum(storeGoodDto_.getStoreId()).getName());
                     }
                     // 其他属性赋值...

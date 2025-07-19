@@ -82,20 +82,11 @@ public class GoodVo {
 
 
 
-    public static GoodVo trasform(GoodDto dto, SpecsDto specsDto){
+    public static GoodVo trasform(GoodDto dto, SpecsVo specsVo){
         GoodVo vo = ConvertUtils.copyProperties(GoodVo.class,dto);
-        if(specsDto != null){
-            vo.setSpecsUnits(new ArrayList<>());
-            if(!StringUtils.isEmpty(specsDto.getUnitName0())) {
-                vo.getSpecsUnits().add(specsDto.getUnitName0());
-            }
-            if(!StringUtils.isEmpty(specsDto.getUnitName1())) {
-                vo.getSpecsUnits().add(specsDto.getUnitName1());
-            }
-            if(!StringUtils.isEmpty(specsDto.getUnitName2())) {
-                vo.getSpecsUnits().add(specsDto.getUnitName2());
-            }
-            vo.setSpecsStr(specsDto.getName());
+        if(specsVo != null){
+            vo.setSpecsUnits(specsVo.getUnitNames());
+            vo.setSpecsStr(specsVo.getName());
         }
         return vo;
     }

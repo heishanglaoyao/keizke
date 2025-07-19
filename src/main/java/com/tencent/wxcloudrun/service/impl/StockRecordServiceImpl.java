@@ -10,6 +10,7 @@ import com.tencent.wxcloudrun.model.SpecsDto;
 import com.tencent.wxcloudrun.model.StockRecordDto;
 import com.tencent.wxcloudrun.model.StoreGoodDto;
 import com.tencent.wxcloudrun.model.bo.StockRecordBo;
+import com.tencent.wxcloudrun.model.vo.SpecsVo;
 import com.tencent.wxcloudrun.service.GoodService;
 import com.tencent.wxcloudrun.service.SpecsService;
 import com.tencent.wxcloudrun.service.StockRecordService;
@@ -63,13 +64,12 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                                     StoreGoodDto::getStoreId, StoreGoodDto::getPriceInCent
                             )
             );
-            List<SpecsDto> dbSpecsList = specsService.getBaseMapper().selectList(null);
-
+            List<SpecsVo> dbSpecsList = specsService.selectList();
             List<StoreGoodDto> updateStoreGoods = new ArrayList<>();
             List<StoreGoodDto> addStoreGoods = new ArrayList<>();
             for(StockRecordBo.Goods g: stockGoodBo.getSelectedGoods()){
                 GoodDto dbGood_ = dbGoods.stream().filter(dbGood -> dbGood.getId().equals(g.getId())).findFirst().get();
-                SpecsDto dbSpecs_ = dbSpecsList.stream().filter(dbSpecs -> dbSpecs.getId().equals(dbGood_.getSpecsId())).findFirst().get();
+                SpecsVo dbSpecs_ = dbSpecsList.stream().filter(dbSpecs -> dbSpecs.getId().equals(dbGood_.getSpecsId())).findFirst().get();
                 tansUpdatateGoods(
                         g,
                         dbGood_,
@@ -109,7 +109,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
     private void tansUpdatateGoods(StockRecordBo.Goods good,
                                             GoodDto dbGood,
                                             StockTypeEnum stockTypeEnum,
-                                                 SpecsDto specsDto,
+                                            SpecsVo specsVo,
                                                 List<StoreGoodDto> goodStoreList,
                                                  StockRecordBo stockGoodBo,
                                                  List<StoreGoodDto> addGoodStores,
@@ -119,9 +119,9 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                         && gs.getStoreId().equals(stockGoodBo.getStoreId())
         ).findFirst().orElse(null);
         //通过规格信息获取商品数量
-        int goodCount = GoodUtils.calGoodNums(specsDto,good.getUnitQuantitiesList());
+        int goodCount = GoodUtils.calGoodNums(specsVo,good.getUnitQuantitiesList());
         eidtGoodStoreDto = setAddGoodStores(eidtGoodStoreDto,stockGoodBo.getStoreId(),dbGood,
-                specsDto, addGoodStores,updateGoodStores );
+                specsVo, addGoodStores,updateGoodStores );
         switch (stockTypeEnum){
             case IN:
                 eidtGoodStoreDto.setNums(eidtGoodStoreDto.getNums() + goodCount);
@@ -136,7 +136,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                                 && gs.getStoreId().equals(stockGoodBo.getToStoreId())
                 ).findFirst().orElse(null);
                 eidtGoodStoreDto2 = setAddGoodStores(eidtGoodStoreDto2,stockGoodBo.getToStoreId(),dbGood,
-                        specsDto,addGoodStores,updateGoodStores );
+                        specsVo,addGoodStores,updateGoodStores );
                 eidtGoodStoreDto2.setNums(eidtGoodStoreDto2.getNums() + goodCount);
                 break;
             case CHECK:
@@ -147,7 +147,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
 
     private StoreGoodDto setAddGoodStores(StoreGoodDto eidtGoodStoreDto,Integer storeId,
                                           GoodDto dbGood,
-                                          SpecsDto specsDto,
+                                          SpecsVo specsVo,
                                           List<StoreGoodDto> addGoodStores,
                                           List<StoreGoodDto> updateGoodStores){
         if(eidtGoodStoreDto == null){
@@ -161,7 +161,7 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
             updateGoodStores.add(eidtGoodStoreDto);
         }
         eidtGoodStoreDto.setName(dbGood.getName());
-        eidtGoodStoreDto.setExtInfo(JSONObject.toJSONString(specsDto));
+        eidtGoodStoreDto.setExtInfo(JSONObject.toJSONString(specsVo));
         return eidtGoodStoreDto;
     }
 
