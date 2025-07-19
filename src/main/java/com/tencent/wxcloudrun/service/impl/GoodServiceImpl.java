@@ -74,9 +74,6 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         if(CollectionUtils.isEmpty(dtos)){
             return goodVos;
         }
-//        List<SpecsVo> specsDtos = specsService.selectBatchIds(
-//                dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
-//        );
         List<StoreGoodDto> storeGoodDtos = storeGoodService.list(null);
         goodVos = transGoodVos(dtos,storeGoodDtos);
         return goodVos;
@@ -96,10 +93,6 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
                 .distinct()
                 .collect(Collectors.toList());
         List<GoodDto> dtos = this.listByIds(uniqueGoodIds);
-
-        List<SpecsVo> specsVos = specsService.selectBatchIds(
-                dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
-        );
         Map<Integer, List<StoreGoodDto>> groupedByStoreId = storeGoodDtos.stream()
                 .collect(Collectors.groupingBy(StoreGoodDto::getStoreId));
         //不同的库类型 去封装商品信息
@@ -109,8 +102,16 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
                 continue;
             }
             List<GoodVo> goodVos_ = transGoodVos(
-                    dtos.stream().filter(vo -> goodIds_.contains(vo.getId())).collect(Collectors.toList()),storeGoodDtos_);
+                    dtos.stream().filter(
+                            vo -> goodIds_.contains(vo.getId())).collect(Collectors.toList())
+                    , storeGoodDtos_
+            );
             goodVos.addAll(goodVos_);
+        }
+        if(isWarning) {
+            goodVos = goodVos.parallelStream().filter(
+                    vo ->  vo.getWarningNum() > 0 &&
+                            vo.getNum() <= vo.getWarningRealNum()).collect(Collectors.toList());
         }
         return goodVos;
     }
@@ -125,9 +126,10 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
                     GoodVo vo = GoodVo.trasform(dto);
                     StoreGoodDto storeGoodDto_ = storeGoodDtos.stream().filter(
                             x->x.getGoodId().equals(dto.getId())).findFirst().orElse(null);
-                    if(storeGoodDto_ != null){
+                    if(storeGoodDto_ != null ){
                         vo.setStoreId(storeGoodDto_.getStoreId());
                         vo.setNum(storeGoodDto_.getNums());
+                        vo.setWarningRealNum(GoodUtils.calWarningNum(vo.getWarningNum(),dto.getUnitValArray()));
                         vo.setNumStr(GoodUtils.transUnitStr(storeGoodDto_.getNums(),
                                 dto.getUnitNameArray(), dto.getUnitValArray()));
                         vo.setStoreName(StoreEnum.getStoreEnum(storeGoodDto_.getStoreId()).getName());

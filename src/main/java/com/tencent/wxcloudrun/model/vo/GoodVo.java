@@ -51,9 +51,14 @@ public class GoodVo {
     private int warningNum;
 
     /**
+     * 库存预警 单位换算后的值
+     */
+    private int warningRealNum;
+
+    /**
      * 库存数量
      */
-    private int nums;
+//    private int nums;
 
     /**
      *  规格["箱","包","个"]

@@ -4,6 +4,7 @@ import com.tencent.wxcloudrun.model.SpecsDto;
 import com.tencent.wxcloudrun.model.bo.StockRecordBo;
 import com.tencent.wxcloudrun.model.vo.SpecsVo;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -56,6 +57,23 @@ public class GoodUtils {
     }
 
     /**
+     * 计算单位换算后的值
+     * @param nums
+     * @param unitValArray
+     * @return
+     */
+    public static int calWarningNum(int nums,List<Integer> unitValArray){
+        if(nums == 0){
+            return 0;
+        }
+        for(int i=1;i<unitValArray.size();i++){
+            nums =nums * unitValArray.get(i);
+        }
+        return nums ;
+    }
+
+
+    /**
      * 页面提交规格数据 转换 nums 1 * 24 * 10
      * @param specsDto 1箱 1包 1个 1+1*10+1*24*10 = 251
      * @param unitQuantitiesList
@@ -82,8 +100,8 @@ public class GoodUtils {
                     unitMap.get(specsVo.getUnitNames().get(1));
         }
         if(level ==3){
-            return unitMap.get(specsVo.getUnitNames().get(0)) *
-                    specsVo.getUnitVals().get(1) * specsVo.getUnitVals().get(2)+
+            return
+                    unitMap.get(specsVo.getUnitNames().get(0)) * specsVo.getUnitVals().get(1) * specsVo.getUnitVals().get(2)+
                     unitMap.get(specsVo.getUnitNames().get(1)) * specsVo.getUnitVals().get(2) +
                     unitMap.get(specsVo.getUnitNames().get(2));
         }

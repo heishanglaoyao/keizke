@@ -35,11 +35,6 @@ public class GoodRecordContoller {
     private GoodRecordService recordService;
 
 
-    @PostMapping("/operate")
-    public ApiResponse<Boolean> operate(@RequestBody GoodRecordVo recordVo) {
-        return ApiResponse.ok(recordService.operate(recordVo));
-    }
-
 
     @RequestMapping("/goodOptions")
     public ApiResponse<List<OptionVo>> goodOptions() {
