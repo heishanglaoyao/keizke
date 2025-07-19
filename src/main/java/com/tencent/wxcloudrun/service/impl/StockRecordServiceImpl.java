@@ -64,17 +64,19 @@ public class StockRecordServiceImpl extends ServiceImpl<StockRecordMapper, Stock
                                     StoreGoodDto::getStoreId, StoreGoodDto::getPriceInCent
                             )
             );
-            List<SpecsVo> dbSpecsList = specsService.selectList();
+//            List<SpecsVo> dbSpecsList = specsService.selectList();
             List<StoreGoodDto> updateStoreGoods = new ArrayList<>();
             List<StoreGoodDto> addStoreGoods = new ArrayList<>();
             for(StockRecordBo.Goods g: stockGoodBo.getSelectedGoods()){
                 GoodDto dbGood_ = dbGoods.stream().filter(dbGood -> dbGood.getId().equals(g.getId())).findFirst().get();
-                SpecsVo dbSpecs_ = dbSpecsList.stream().filter(dbSpecs -> dbSpecs.getId().equals(dbGood_.getSpecsId())).findFirst().get();
+                SpecsVo specs_ = SpecsVo.generateSpecsVo(
+                        dbGood_.getSpecsName(),dbGood_.getUnitValArray(),dbGood_.getUnitNameArray()
+                );
                 tansUpdatateGoods(
                         g,
                         dbGood_,
                         StockTypeEnum.getStockTypeEnumByCode(stockGoodBo.getStockType()),
-                        dbSpecs_,
+                        specs_,
                         goodStoreList,
                         stockGoodBo,
                         addStoreGoods,

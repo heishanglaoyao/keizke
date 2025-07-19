@@ -18,4 +18,12 @@ public class SpecsVo {
     private List<String> unitNames;
 
 
+    public static SpecsVo generateSpecsVo(
+            String name, List<Integer> unitVals, List<String> unitNames){
+        SpecsVo specsVo = new SpecsVo();
+        specsVo.setName(name);
+        specsVo.setUnitNames(unitNames);
+        specsVo.setUnitVals(unitVals);
+        return specsVo;
+    }
 }

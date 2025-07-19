@@ -46,9 +46,16 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         return this.list(queryWrapper);
     }
 
-    public boolean edit(GoodBo goodBo){
-        GoodDto goodDto = ConvertUtils.copyProperties(GoodDto.class,goodBo);
-        return this.saveOrUpdate(goodDto);
+    public String edit(GoodBo goodBo){
+        String errMsg = null;
+        try {
+            GoodDto goodDto = ConvertUtils.copyProperties(GoodDto.class,goodBo);
+            goodDto.setUnit();
+            this.saveOrUpdate(goodDto);
+        }catch (Exception e){
+            errMsg = e.getMessage();
+        }
+        return errMsg;
     }
 
     public List<GoodVo> list(GoodQo qo){
@@ -67,11 +74,11 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         if(CollectionUtils.isEmpty(dtos)){
             return goodVos;
         }
-        List<SpecsVo> specsDtos = specsService.selectBatchIds(
-                dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
-        );
+//        List<SpecsVo> specsDtos = specsService.selectBatchIds(
+//                dtos.stream().map(GoodDto::getSpecsId).collect(Collectors.toList())
+//        );
         List<StoreGoodDto> storeGoodDtos = storeGoodService.list(null);
-        goodVos = transGoodVos(dtos,specsDtos,storeGoodDtos);
+        goodVos = transGoodVos(dtos,storeGoodDtos);
         return goodVos;
     }
 
@@ -102,27 +109,27 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
                 continue;
             }
             List<GoodVo> goodVos_ = transGoodVos(
-                    dtos.stream().filter(vo -> goodIds_.contains(vo.getId())).collect(Collectors.toList())
-                    ,specsVos,storeGoodDtos_);
+                    dtos.stream().filter(vo -> goodIds_.contains(vo.getId())).collect(Collectors.toList()),storeGoodDtos_);
             goodVos.addAll(goodVos_);
         }
         return goodVos;
     }
 
-    private List<GoodVo> transGoodVos(List<GoodDto> dtos, List<SpecsVo> specsVos, List<StoreGoodDto> storeGoodDtos){
+    private List<GoodVo> transGoodVos(List<GoodDto> dtos, List<StoreGoodDto> storeGoodDtos){
         if(org.apache.commons.collections4.CollectionUtils.isEmpty(dtos)){
             return new ArrayList<>();
         }
         List<GoodVo> goodVos = dtos.parallelStream()
                 .map(dto -> {
-                    SpecsVo specsVo = specsVos.stream().filter(x->x.getId().equals(dto.getSpecsId())).findFirst().orElse(null);
-                    GoodVo vo = GoodVo.trasform(dto,specsVo);
+//                    SpecsVo specsVo = specsVos.stream().filter(x->x.getId().equals(dto.getSpecsId())).findFirst().orElse(null);
+                    GoodVo vo = GoodVo.trasform(dto);
                     StoreGoodDto storeGoodDto_ = storeGoodDtos.stream().filter(
                             x->x.getGoodId().equals(dto.getId())).findFirst().orElse(null);
                     if(storeGoodDto_ != null){
                         vo.setStoreId(storeGoodDto_.getStoreId());
                         vo.setNum(storeGoodDto_.getNums());
-                        vo.setNumStr(GoodUtils.transUnitStr(storeGoodDto_.getNums(),specsVo));
+                        vo.setNumStr(GoodUtils.transUnitStr(storeGoodDto_.getNums(),
+                                dto.getUnitNameArray(), dto.getUnitValArray()));
                         vo.setStoreName(StoreEnum.getStoreEnum(storeGoodDto_.getStoreId()).getName());
                     }
                     // 其他属性赋值...

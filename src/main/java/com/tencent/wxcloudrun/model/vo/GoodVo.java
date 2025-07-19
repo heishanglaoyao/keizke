@@ -65,7 +65,7 @@ public class GoodVo {
     /**
      * 规格名称 1箱*12包*10个
      */
-    private String specsStr;
+    private String specsName;
 
     /**
      * 仓库id
@@ -82,12 +82,10 @@ public class GoodVo {
 
 
 
-    public static GoodVo trasform(GoodDto dto, SpecsVo specsVo){
+    public static GoodVo trasform(GoodDto dto){
         GoodVo vo = ConvertUtils.copyProperties(GoodVo.class,dto);
-        if(specsVo != null){
-            vo.setSpecsUnits(specsVo.getUnitNames());
-            vo.setSpecsStr(specsVo.getName());
-        }
+        vo.setSpecsUnits(dto.getUnitNameArray());
+        vo.setStoreName(dto.getSpecsName());
         return vo;
     }
 

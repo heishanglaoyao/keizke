@@ -32,7 +32,14 @@ public class GoodBo{
     /**
      * 规格 id
      */
-    private Integer specsId;
+//    private Integer specsId;
+
+
+    /**
+     * 规格信息
+      */
+    private String specsName;
+
 
 
     /**
@@ -49,5 +56,7 @@ public class GoodBo{
      * 库存预警
      */
     private int warningNum;
+
+    private String notes;
 
 }

@@ -32,7 +32,7 @@ public class GoodController {
      */
     @PostMapping("/edit")
     public ApiResponse<Boolean> add(@RequestBody GoodBo good) {
-        return ApiResponse.ok(goodService.edit(good));
+        return ApiResponse.ok4ErrMsg(goodService.edit(good));
     }
 
 

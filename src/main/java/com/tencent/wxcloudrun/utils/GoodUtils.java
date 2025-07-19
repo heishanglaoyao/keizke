@@ -6,6 +6,8 @@ import com.tencent.wxcloudrun.model.vo.SpecsVo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class GoodUtils {
@@ -19,26 +21,26 @@ public class GoodUtils {
      * @param specsDto
      * @return
      */
-    public static String transUnitStr(int nums, SpecsVo specs){
+    public static String transUnitStr(int nums, List<String> unitNames,List<Integer> unitVals){
         // 1箱 24包 10 个
         int[] unit =  new int[3];
-        int level = specs.getUnitNames().size();
+        int level = unitNames.size();
         if(level ==1){
-            return nums + ""+specs.getUnitNames().get(0);
+            return nums + ""+unitNames.get(0);
         }
         if(level ==2){
-            int[] unitArr = getUnitArr(nums,specs.getUnitVals().get(1));
-            return unitArr[1] + ""+specs.getUnitNames().get(0) +SPECS_SEPARATORS+
-                    unitArr[0] + ""+specs.getUnitNames().get(1);
+            int[] unitArr = getUnitArr(nums,unitVals.get(1));
+            return unitArr[1] + ""+unitNames.get(0) +SPECS_SEPARATORS+
+                    unitArr[0] + ""+unitNames.get(1);
         }
         if(level == 3){
             int[] unitArr = getUnitArr(nums,
-                    specs.getUnitVals().get(1) * specs.getUnitVals().get(2));
+                    unitVals.get(1) * unitVals.get(2));
             int val_2 = unitArr[1];
-            unitArr = getUnitArr(unitArr[0],specs.getUnitVals().get(2));
-            return val_2 + ""+specs.getUnitNames().get(0)+SPECS_SEPARATORS+
-                    unitArr[1] + ""+specs.getUnitNames().get(1) +SPECS_SEPARATORS+
-                    unitArr[0] + ""+specs.getUnitNames().get(2);
+            unitArr = getUnitArr(unitArr[0],unitVals.get(2));
+            return val_2 + ""+unitNames.get(0)+SPECS_SEPARATORS+
+                    unitArr[1] + ""+unitNames.get(1) +SPECS_SEPARATORS+
+                    unitArr[0] + ""+unitNames.get(2);
         }
         return "";
     }
@@ -86,5 +88,39 @@ public class GoodUtils {
                     unitMap.get(specsVo.getUnitNames().get(2));
         }
         return res;
+    }
+
+    public static void parseString(String input, List<Integer> numbers, List<String> units) {
+        // 清空列表（避免多次调用时数据累积）
+        numbers.clear();
+        units.clear();
+
+        // 处理特殊情况：如果输入是纯单位（如 "个"）
+        if (!input.contains("*")) {
+            // 尝试提取数字（可能没有）
+            Pattern pattern = Pattern.compile("^(\\d*)(\\D+)$");
+            Matcher matcher = pattern.matcher(input);
+            if (matcher.find()) {
+                String numStr = matcher.group(1);
+                String unit = matcher.group(2);
+                numbers.add(numStr.isEmpty() ? 1 : Integer.parseInt(numStr));
+                units.add(unit);
+            }
+            return;
+        }
+
+        // 按 '*' 分割字符串
+        String[] parts = input.split("\\*");
+        Pattern pattern = Pattern.compile("(\\d+)(\\D+)");
+
+        for (String part : parts) {
+            Matcher matcher = pattern.matcher(part);
+            if (matcher.find()) {
+                int num = Integer.parseInt(matcher.group(1));
+                String unit = matcher.group(2);
+                numbers.add(num);
+                units.add(unit);
+            }
+        }
     }
 }

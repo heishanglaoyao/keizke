@@ -12,7 +12,7 @@ public interface GoodService extends IService<GoodDto> {
     // 自定义方法
     List<GoodDto> listAllByName(String name);
 
-    public boolean edit(GoodBo goodBo);
+    public String edit(GoodBo goodBo);
 
     public List<GoodVo> list(GoodQo qo);
 
