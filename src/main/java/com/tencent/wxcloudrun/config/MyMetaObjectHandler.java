@@ -5,18 +5,22 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
     @Override
     public void insertFill(MetaObject metaObject) {
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now(ZONE_ID);
+        this.strictInsertFill(metaObject, "createTime", () -> now, LocalDateTime.class);
+        this.strictInsertFill(metaObject, "updateTime", () -> now, LocalDateTime.class);
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now(ZONE_ID);
+        this.strictUpdateFill(metaObject, "updateTime", () -> now, LocalDateTime.class);
     }
 }
