@@ -110,8 +110,7 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodDto> implements
         }
         if(isWarning) {
             goodVos = goodVos.parallelStream().filter(
-                    vo ->  vo.getWarningNum() > 0 &&
-                            vo.getNum() <= vo.getWarningRealNum()).collect(Collectors.toList());
+                    vo -> vo.getNum() <= vo.getWarningRealNum()).collect(Collectors.toList());
         }
         return goodVos;
     }
